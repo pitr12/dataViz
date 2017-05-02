@@ -1,6 +1,7 @@
 body {
   margin: 0;
   background-color: #2980b9;
+  font-size: 14px;
 }
 
 canvas {
@@ -17,8 +18,9 @@ canvas {
      float: left;
      display: none;
      color: white;
-     font-size: xx-large;
      height: 100%;
+     position: relative;
+     z-index: 3;
 }
 
 #showStimulus {
@@ -28,6 +30,17 @@ canvas {
    float: left;
    color: white;
    cursor: pointer;
+   position: relative;
+   z-index: 3;
+}
+
+#heatmapScale {
+  width: 257px;
+  position: absolute;
+  right: 72;
+  bottom: 10;
+  z-index: 2;
+  color: white;
 }
 
 .overallImage {
@@ -39,4 +52,193 @@ canvas {
   writing-mode: tb-rl;
   padding-left: 3px;
   padding-top: 15px;
+}
+
+.imgSize {
+  width: 1920px;
+  height: 1080px;
+}
+
+#timeStart, #timeStart2 {
+  padding-right: 10px;
+}
+
+#timeEnd, #timeEnd2 {
+  padding-left: 10px;
+}
+
+#draggable { width: 150px; height: 150px; padding: 0.5em; border: 1px solid black;}
+
+.slider {
+    width: 50% !important;
+}
+
+.contentWrapper {
+  display: flex;
+}
+
+#outerThreeWrapper {
+  flex-grow: 5;
+}
+
+#filterPanel {
+  flex-grow: 1;
+  background-color: black;
+  border-left: 1px solid white;
+  height: 100%;
+  text-align: center;
+  color: white;
+  min-width: 240px;
+  max-width: 387px;
+}
+
+.settings {
+  font-size: 20px;
+  padding-top: 10px;
+  margin-bottom: 20px;
+}
+
+.panelTimeFilter {
+  margin-top: 20px;
+  min-width: 195px;
+}
+
+#panelFilterBtn, #panelFilterResetBtn {
+  margin-top: 5px;
+  width: 100px;
+}
+
+#userSelect {
+  width: 60%;
+  margin: 0 auto;
+}
+
+#mappingSelectColor,  #mappingSelectSize{
+  width: 63%;
+  margin: 0 auto;
+  display: inline-block;
+}
+
+#mappings {
+  text-align: left;
+  width: 60%;
+  margin: 0 auto;
+}
+
+#mappings span {
+  min-width: 80px;
+  display: inline-block;
+  padding-bottom: 20px;
+}
+
+.mappingTitle {
+  padding-top: 20px;
+}
+
+#userColors {
+  margin-top: 20px;
+}
+
+.colorNameLabel {
+  width: 60%;
+  margin: 0 auto;
+  text-align: left;
+  padding-top: 5px;
+}
+
+.colorNameLabel label {
+  padding-right: 10px;
+  min-width: 125px;
+}
+
+#infoBox {
+  text-align: left;
+  border: 1px solid white;
+  border-radius: 5px;
+  padding: 10px;
+  display: none;
+}
+
+#infoWrapper {
+  margin-left: 30px;
+  margin-right: 30px;
+}
+
+#infoBox label {
+  padding-right: 10px;
+}
+
+.info {
+  font-size: 20px;
+  margin-top: 20px;
+  text-align: center;
+}
+
+#durationWrapper {
+  text-align: left;
+  width: 60%;
+  margin: 0 auto;
+  height: 100px;
+}
+
+.durationTitle {
+  text-align: center;
+  padding-top: 20px;
+}
+.durationUnit {
+  display: inline-block;
+  height: 34px;
+  line-height: 34px;
+  padding-left: 5px;
+}
+
+.ui-spinner {
+  width: 120px;
+  float: left;
+}
+
+#overallInfo {
+  position: absolute;
+  bottom: 10;
+  left: 35px;
+  color: white;
+  cursor: pointer;
+}
+
+.overallInfoTitle {
+  font-size: 17px;
+  font-weight: bold;
+}
+
+.overallInfoLabel {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.overallInfoItem {
+  margin-bottom: 15px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+}
+
+.loader {
+    display:    none;
+    position:   fixed;
+    z-index:    1000;
+    top:        0;
+    left:       0;
+    height:     100%;
+    width:      100%;
+    background: rgba( 0, 0, 0, .8 )
+                url('images/ajax-loader.gif')
+                50% 50%
+                no-repeat;
+}
+
+body.loading {
+    overflow: hidden;
+}
+
+body.loading .loader {
+    display: block;
 }

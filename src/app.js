@@ -1,47 +1,65 @@
 import {
-  extractFixation,
-  createFixationCube,
-  findMinMaxFixationDuration,
+  addNormalizedLength,
+  findMinMaxDuration,
+  splitFixationsAndSaccades,
+  drawGazePlot,
+  drwawStimulusImg,
+  drawFixations,
+  insertParam,
 } from './helpers';
-
-import {
-  BASIC_CUBE_SIZE,
-  GRID_SIZE,
-} from './config';
-import { setupGUI } from './gui';
-import $ from 'jquery';
+import { setupGUI, displayInfo } from './gui';
+import { BASIC_CUBE_SIZE } from './config';
 
 class App {
   constructor() {
-    setupGUI();
-    this.width = window.innerWidth - 25;
+    $('body').addClass("loading");
+    this.width = $('#outerThreeWrapper').innerWidth();
     this.height = window.innerHeight;
-    this.loadData();
+    this.currentParticipant = 0;
+
     this.environment = this.setupEnvironment();
-    // this.setupContent();
+    this.loadData();
     this.render();
   }
 
-  loadData() {
-    const sample = $.get('/src/data/visualizationData.tsv', (data) => {
-      const results = Papa.parse(data, {
-        header: true,
-      });
+  drawStimulusCanvas(fixations) {
+    const wrapper = document.getElementById('stimulusWrapper');
+    wrapper.setAttribute("style",`width: ${window.innerWidth}`);
+    wrapper.setAttribute("style",`height: ${window.innerHeight - 25}`);
+    drwawStimulusImg();
+    drawGazePlot(fixations);
+  }
 
-      const [min, max] = findMinMaxFixationDuration(results.data);
+  loadData = async() => {
+    const files = [
+      '/src/data/visualizationData1_complete.tsv',
+      '/src/data/visualizationData2_complete.tsv',
+    ];
 
-      const filteredResults = results.data.map(data => extractFixation(data, min, max)).filter(res => (res.id && res.x && res.y));
-      let lastCubePosition = -(GRID_SIZE/2);
-      let lastCubeSize = BASIC_CUBE_SIZE;
-      filteredResults.forEach(res => {
-        const size = BASIC_CUBE_SIZE + BASIC_CUBE_SIZE * res.normalizedLength;
-        const position = lastCubePosition + lastCubeSize/2 + size/2;
-        this.addFixationCube(res, position, size);
-        this.addFixationCubeBackground(size, position, 0x4AC948);
-        lastCubePosition = position;
-        lastCubeSize = size;
+    let i = 0;
+
+    for (let file of files) {
+      await $.get(file, (data) => {
+        const results = Papa.parse(data, {
+          header: true,
+        });
+
+        const [fixations, saccades] = splitFixationsAndSaccades(results.data);
+        const [minFixation, maxFixation] = findMinMaxDuration(fixations);
+        const normalizedFixations = addNormalizedLength(fixations, minFixation, maxFixation);
+        const [minSaccade, maxSaccade] = findMinMaxDuration(saccades);
+        const normalizedSaccades = addNormalizedLength(saccades, minSaccade, maxSaccade);
+
+        this.environment.fixations[i] = normalizedFixations;
+        this.environment.saccades[i] = normalizedSaccades;
+
+        drawFixations(this.environment, i);
+        i+= 1;
       });
-    });
+    }
+    this.drawStimulusCanvas(this.environment.fixations[0]);
+    await setupGUI(this.environment);
+    $('body').removeClass("loading");
   }
 
   setupEnvironment() {
@@ -51,19 +69,79 @@ class App {
     const controls = new THREE.OrbitControls( camera, renderer.domElement );
     const light = this.addLight(scene);
     document.getElementById('threeWrapper').appendChild( renderer.domElement );
+
+    const eventsControls = new EventsControls( camera, renderer.domElement );
+
+    eventsControls.attachEvent( 'onclick', function(ec) {
+        ec.focused.position.set(
+          ec.focused.position.x,
+          ec.focused.position.y,
+          (ec.focused.position.z === (ec.focused.userData.positionZ * BASIC_CUBE_SIZE)
+            ? (ec.focused.userData.positionZ * BASIC_CUBE_SIZE) + BASIC_CUBE_SIZE
+            : (ec.focused.userData.positionZ * BASIC_CUBE_SIZE))
+        );
+
+        if (this.environment.objectDetail && this.environment.objectDetail !== ec.focused) {
+          this.environment.objectDetail.position.z -= BASIC_CUBE_SIZE;
+        }
+
+        if (this.environment.objectDetail && this.environment.objectDetail === ec.focused) {
+          this.environment.objectDetail = null;
+        } else {
+          this.environment.objectDetail = ec.focused;
+        }
+
+        if (ec.event.isRightClick) {
+          this.environment.objectDetail = null;
+          const selectedFixations = this.environment.selectedFixations[ec.focused.userData.participantID];
+
+          if (selectedFixations) { //array already exists
+            const index = _.indexOf(selectedFixations, ec.focused.userData.id);
+            if (index >= 0) { //remove item
+              this.environment.selectedFixations[ec.focused.userData.participantID] = _.without(selectedFixations, ec.focused.userData.id);
+            } else { //add item
+              this.environment.selectedFixations[ec.focused.userData.participantID].push(ec.focused.userData.id)
+            }
+          } else { //new array
+            this.environment.selectedFixations[ec.focused.userData.participantID] = [ec.focused.userData.id];
+          }
+        }
+
+        displayInfo(this.environment.objectDetail && this.environment.objectDetail.userData)
+
+    }.bind(this, eventsControls));
+
+    eventsControls.attachEvent( 'mouseOver', function () {
+			this.container.style.cursor = 'pointer';
+		});
+    eventsControls.attachEvent( 'mouseOut', function () {
+			this.container.style.cursor = 'auto';
+		});
+
+
     return {
       scene,
       camera,
       renderer,
       light,
       controls,
+      eventsControls,
+      fixations: {},
+      saccades: {},
+      colors: ['#4AC948', '#e67e22'],
+      objectDetail: null,
+      mapping: {
+        color: 'saccade',
+        size: 'fixation',
+      },
+      selectedFixations: {},
     };
   }
 
   createCamera() {
     const camera = new THREE.PerspectiveCamera(45, this.width/this.height, 0.1, 2000 );
-    camera.position.z = 150;
-    camera.position.y = 150;
+    camera.position.z = 250;
+    camera.position.y = 250;
     return camera;
   }
 
@@ -86,26 +164,6 @@ class App {
 
     scene.add(pointofLight);
     return pointofLight;
-  }
-
-  setupContent () {
-    const grid = new THREE.GridHelper(GRID_SIZE, GRID_SIZE/BASIC_CUBE_SIZE);
-    this.environment.scene.add(grid);
-  }
-
-  addFixationCube = async(fixation, positionX, cubeSize) => {
-    const cube = await createFixationCube(fixation, positionX, cubeSize)
-    this.environment.scene.add( cube );
-  }
-
-  addFixationCubeBackground(cubeSize, cubePosition, color) {
-    const geometry = new THREE.BoxGeometry( cubeSize, 0, BASIC_CUBE_SIZE * 5 );
-    const material = new THREE.MeshBasicMaterial({color})
-    const cube = new THREE.Mesh( geometry, material );
-    cube.position.x = cubePosition;
-    cube.position.y = 0;
-    cube.position.z = 0;
-    this.environment.scene.add( cube );
   }
 
   render = () => {

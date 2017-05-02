@@ -1,20 +1,114 @@
 <html>
 	<head>
 		<title>My first three.js app</title>
+		<link rel="stylesheet" type="text/css" href="node_modules/bootstrap-slider/dist/css/bootstrap-slider.min.css">
+		<link rel="stylesheet" type="text/css" href="src/css/bootstrap.min.css">
+		<link rel="stylesheet" type="text/css" href="src/css/jquery-ui.css">
+		<link rel="stylesheet" type="text/css" href="src/css/spectrum.css">
 		<link rel="stylesheet" type="text/css" href="src/css/main.css">
 	</head>
 	<body>
 		<div id='panel'>
-		    <img class="overallImage" src="src/assets/visualizationImage.png" />
+		    <img id="overallImage" src="src/assets/visualizationImage.png" style="display: none"/>
+
+				<div class="row">
+					<div style="text-align: center" class="col-md-12">
+						Filter by time interval:
+						<b id="timeStart">0s </b>
+							<input id="timeSlider" type="text" class="span2" value="" />
+						<b id="timeEnd"></b>
+						<div class="btn btn-default" id="stimulusFilterBtn">Filter</div>
+					</div>
+				</div>
+
+				<div id="stimulusWrapper">
+					<canvas id="stimulusCanvas"></canvas>
+				</div>
 		</div>
+
 		<div id="showStimulus">
 			<span id="showStimulusText" class="vertical-text">Show stimulus</span>
 		</div>
-		<div id="threeWrapper"></div>
+		<div id="heatmapScale">
+			<span>Color scale:</span>
+			<img src="src/assets/heatmap.png" />
+		</div>
+
+		<div class="contentWrapper">
+			<div id="outerThreeWrapper">
+				<div id="threeWrapper"></div>
+			</div>
+
+			<div id="filterPanel">
+
+					<div class="settings">Settings</div>
+
+					<div>Show stimulus for:</div>
+					<div>
+						<select class="form-control" id="userSelect">
+					  </select>
+					</div>
+
+					<div class="mappingTitle">Visual mapping:</div>
+					<div id="mappings">
+						<span>Cube color:</span>
+						<select class="form-control" id="mappingSelectColor">
+							<option value="saccade">Saccade length</option>
+							<option value="fixation">Fixation length</option>
+					  </select><br>
+						<span>Cube size:</span>
+						<select class="form-control" id="mappingSelectSize">
+							<option value="fixation">Fixation length</option>
+							<option value="saccade">Saccade length</option>
+					  </select>
+					</div>
+
+					<div id="userColors">
+						<div>Select user colors:</div>
+					</div>
+
+					<div id="durationWrapper">
+						<div class="durationTitle">Only fixations longer than:</div>
+						<input id="duarationSpinner" name="duration" value="0">
+						<span class="durationUnit"> ms</span><br>
+					</div>
+
+					<div class="btn btn-danger" id="panelFilterResetBtn">Reset</div>
+					<div class="btn btn-primary" id="panelFilterBtn">Apply</div>
+
+				<div id="infoWrapper">
+					<div class="info">Info</div>
+					<span id="infoWarning">No fixation selected!</span><br>
+					<div id="infoBox">
+						<label>Participant name:</label><span id="infoName"></span><br>
+						<label>FixationID:</label><span id="infoID"></span><br>
+						<label>Fixation duration:</label><span id="infoDuration"></span><br>
+						<label>Recording timestamp:</label><span id="infoTimestamp"></span><br>
+						<label>Position:</label><span id="infoPosition"></span>
+					</div>
+				</div>
+
+			</div>
+
+			<div id="dialog" title="Overall Info" style="display: none">
+			</div>
+
+			<div id="overallInfo">Show overall info</div>
+
+		</div>
+
+		<div class="loader"></div>
 
 			<script src="src/three.js"></script>
 			<script src="src/OrbitControls.js"></script>
+			<script src="src/EventControls.js"></script>
 			<script src="src/papaparse.min.js"></script>
+			<script src="src/jquery.min.js"></script>
+			<script src="src/underscore.js"></script>
+			<script src="src/spectrum.js"></script>
+			<script src="src/jquery-ui.min.js"></script>
+			<script src="node_modules/bootstrap-slider/dist/bootstrap-slider.min.js"></script>
 			<script src="dist/app.js">></script>
+
 	</body>
 </html>
